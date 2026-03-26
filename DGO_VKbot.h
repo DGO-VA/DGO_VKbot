@@ -366,6 +366,14 @@ private:
         return count;
     }
 
+    // UTF-16 offset начала part в fullText.
+    // Возвращает -1, если part не найдена.
+    int utf16OffsetOf(const String& fullText, const String& part) {
+        int bytePos = fullText.indexOf(part);
+        if (bytePos < 0) return -1;
+        return utf16Len(fullText.substring(0, bytePos));
+    }
+
     String buildFormatDataItem(const String& type, int offset, int length, const String& urlValue = "") {
         DynamicJsonDocument doc(256);
         doc["version"] = 1;
@@ -644,9 +652,31 @@ public:
     // Хелперы возвращают JSON строку для параметра format_data.
     // Смещения и длины считаются в UTF-16 code units (VK требование).
     String fmtBold(const String& fullText, const String& part) {
-        int offset = utf16Len(fullText.substring(0, fullText.indexOf(part)));
+        int offset = utf16OffsetOf(fullText, part);
+        if (offset < 0) return "";
         int length = utf16Len(part);
         return buildFormatDataItem("bold", offset, length);
+    }
+
+    String fmtItalic(const String& fullText, const String& part) {
+        int offset = utf16OffsetOf(fullText, part);
+        if (offset < 0) return "";
+        int length = utf16Len(part);
+        return buildFormatDataItem("italic", offset, length);
+    }
+
+    String fmtUnderline(const String& fullText, const String& part) {
+        int offset = utf16OffsetOf(fullText, part);
+        if (offset < 0) return "";
+        int length = utf16Len(part);
+        return buildFormatDataItem("underline", offset, length);
+    }
+
+    String fmtUrl(const String& fullText, const String& part, const String& href) {
+        int offset = utf16OffsetOf(fullText, part);
+        if (offset < 0) return "";
+        int length = utf16Len(part);
+        return buildFormatDataItem("url", offset, length, href);
     }
 
     String fmtItalicAt(int offsetUtf16, int lengthUtf16) {
