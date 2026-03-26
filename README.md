@@ -1,10 +1,15 @@
 # DGO_VKbot
 
-Библиотека для работы с VK API через Long Poll для ESP8266 и ESP32.
+Библиотека для работы с VK API для ESP8266 и ESP32.
+
+Поддерживает два режима получения сообщений:
+- **Long Poll**: классический VK Long Poll (может быть блокирующим или кооперативным неблокирующим).
+- **Short Poll**: короткие запросы (опрос последнего сообщения через `messages.getHistory` с заданным интервалом).
 
 ## Возможности
 
-- Поддержка Long Poll API VK
+- Long Poll API VK (включая неблокирующий режим для отзывчивого `loop()`)
+- Short Poll режим (короткие запросы через `messages.getHistory`)
 - Отправка и получение сообщений
 - Синхронизация времени через VK API
 - Управление таймзоной
@@ -48,14 +53,47 @@ void setup() {
   bot.setToken(VK_TOKEN);
   bot.setGroupId(GROUP_ID);
   bot.attach(onNewMessage);
+  
+  // Long Poll: для отзывчивого loop() включаем неблокирующий режим
+  bot.setModeLongPoll();
+  bot.setNonBlockingLongPoll(true);
+  bot.setLongPollWaitSeconds(1);
+  bot.setLongPollTimeoutMs(3000);
   bot.begin();
 }
 
 void loop() {
   bot.tick();
-  delay(100);
+  delay(1);
 }
 ```
+
+## Режимы получения сообщений
+
+### Long Poll
+
+По умолчанию библиотека работает через VK Long Poll. В классическом (блокирующем) режиме `tick()` может ждать события до \(wait\) секунд.
+
+Чтобы `loop()` не “залипал” на 25–30 секунд, включайте **кооперативный неблокирующий** режим и ставьте небольшой `wait`:
+
+```cpp
+bot.setModeLongPoll();
+bot.setNonBlockingLongPoll(true);
+bot.setLongPollWaitSeconds(0); // или 1
+bot.setLongPollTimeoutMs(3000);
+```
+
+Рекомендация: вызывайте `bot.tick()` часто и не используйте большие `delay()` (периодику делайте через `millis()`).
+
+### Short Poll (короткие запросы)
+
+Если long poll не нужен, можно опрашивать последнее сообщение у пользователя через `messages.getHistory` с заданным интервалом:
+
+```cpp
+bot.setModeShortPoll("123456789", 2000, 5000); // user_id, intervalMs, timeoutMs
+```
+
+В этом режиме `begin()` не запрашивает long poll сервер/ключ/ts.
 
 ## Фильтрация по ID отправителя
 
@@ -104,6 +142,14 @@ void onNewMessage(VkUpdate& update) {
 - `sendMessage(String text, int peer_id)` - отправить сообщение
 - `tick()` - обработать события (вызывать в loop)
 
+### Настройка режима получения сообщений
+
+- `setModeLongPoll()` - включить режим Long Poll
+- `setNonBlockingLongPoll(bool enabled)` - кооперативный неблокирующий long poll
+- `setLongPollWaitSeconds(uint8_t seconds)` - параметр `wait` (сек)
+- `setLongPollTimeoutMs(uint32_t timeoutMs)` - таймаут (мс)
+- `setModeShortPoll(String userId, uint32_t intervalMs=2000, uint32_t timeoutMs=5000)` - режим Short Poll
+
 ### Управление временем
 
 - `setTimezone(int hours)` - установить таймзону (например, 3 для UTC+3)
@@ -113,11 +159,12 @@ void onNewMessage(VkUpdate& update) {
 
 ## Примеры
 
-В папке `examples` находятся три примера:
+В папке `examples` находятся примеры:
 
 1. **EchoBot** - простой эхо-бот
 2. **LEDControl** - управление светодиодом через команды
 3. **DHT11Sensor** - получение данных с датчика DHT11
+4. **ShortPollEchoBot** - эхо-бот в режиме Short Poll (`messages.getHistory`)
 
 ## Поддержка платформ
 

@@ -102,6 +102,12 @@ void setup() {
   bot.setToken(VK_TOKEN);
   bot.setGroupId(GROUP_ID);
   bot.attach(onNewMessage);
+
+  // Рекомендуемые настройки Long Poll для отзывчивого loop()
+  bot.setModeLongPoll();
+  bot.setNonBlockingLongPoll(true);
+  bot.setLongPollWaitSeconds(1);
+  bot.setLongPollTimeoutMs(3000);
   
   // Запускаем бота
   Serial.println("Запуск VK бота...");
@@ -132,5 +138,5 @@ void loop() {
     lastRead = millis();
   }
   
-  delay(100);
+  delay(1);
 }
