@@ -566,8 +566,18 @@ public:
     
     // Запуск бота
     bool begin() {
-        if (token.length() == 0 || groupId.length() == 0) {
-            Serial.println("[VK] Установите токен и ID группы!");
+        if (token.length() == 0) {
+            Serial.println("[VK] Установите токен!");
+            return false;
+        }
+
+        if (pollMode == PollMode::LongPoll && groupId.length() == 0) {
+            Serial.println("[VK] Для Long Poll установите ID группы!");
+            return false;
+        }
+
+        if (pollMode == PollMode::ShortPoll && shortPollUserId.length() == 0) {
+            Serial.println("[VK] Для Short Poll установите user_id через setModeShortPoll()");
             return false;
         }
         
