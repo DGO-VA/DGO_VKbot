@@ -156,15 +156,20 @@ void onNewMessage(VkUpdate& update) {
 
 - `sendMessage(String text, int peer_id, String format_data_json)` - отправка с разметкой
 - `fmtBold(const String& fullText, const String& part)` - выделить подстроку жирным
+- `fmtBoldAll(const String& fullText)` - выделить весь текст жирным
 - `fmtItalic(const String& fullText, const String& part)` - выделить подстроку курсивом
+- `fmtItalicAll(const String& fullText)` - выделить весь текст курсивом
 - `fmtUnderline(const String& fullText, const String& part)` - выделить подстроку подчеркиванием
+- `fmtUnderlineAll(const String& fullText)` - выделить весь текст подчеркиванием
 - `fmtUrl(const String& fullText, const String& part, const String& href)` - сделать подстроку ссылкой
 - `fmtItalicAt(int offsetUtf16, int lengthUtf16)` - сделать фрагмент курсивом
 - `fmtUnderlineAt(int offsetUtf16, int lengthUtf16)` - сделать фрагмент подчеркнутым
 - `fmtUrlAt(int offsetUtf16, int lengthUtf16, const String& href)` - сделать фрагмент ссылкой
 - `fmtMerge(const String& a, const String& b)` - объединить несколько `format_data` JSON
 
-Важно: `offset` и `length` должны быть в **UTF-16 code units** (требование VK API).
+Важно:
+- `offset` и `length` должны быть в **UTF-16 code units** (требование VK API).
+- Методы `fmtBold/fmtItalic/fmtUnderline/fmtUrl` форматируют **первое найденное вхождение** `part`.
 
 Пример:
 
@@ -177,6 +182,14 @@ String link = bot.fmtUrl(text, "vk.com", "https://vk.com");
 String fmt = bot.fmtMerge(italic, link);
 
 bot.sendMessage(text, peer_id, fmt);
+```
+
+Пример: весь ответ курсивом
+
+```cpp
+String reply = "Эхо: " + text;
+String fmt = bot.fmtItalicAll(reply);
+bot.sendMessage(reply, peer_id, fmt);
 ```
 
 ### Управление временем

@@ -658,6 +658,11 @@ public:
         return buildFormatDataItem("bold", offset, length);
     }
 
+    // Форматировать весь текст
+    String fmtBoldAll(const String& fullText) {
+        return buildFormatDataItem("bold", 0, utf16Len(fullText));
+    }
+
     String fmtItalic(const String& fullText, const String& part) {
         int offset = utf16OffsetOf(fullText, part);
         if (offset < 0) return "";
@@ -665,11 +670,21 @@ public:
         return buildFormatDataItem("italic", offset, length);
     }
 
+    // Форматировать весь текст
+    String fmtItalicAll(const String& fullText) {
+        return buildFormatDataItem("italic", 0, utf16Len(fullText));
+    }
+
     String fmtUnderline(const String& fullText, const String& part) {
         int offset = utf16OffsetOf(fullText, part);
         if (offset < 0) return "";
         int length = utf16Len(part);
         return buildFormatDataItem("underline", offset, length);
+    }
+
+    // Форматировать весь текст
+    String fmtUnderlineAll(const String& fullText) {
+        return buildFormatDataItem("underline", 0, utf16Len(fullText));
     }
 
     String fmtUrl(const String& fullText, const String& part, const String& href) {
