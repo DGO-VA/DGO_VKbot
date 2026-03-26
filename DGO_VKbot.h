@@ -474,9 +474,9 @@ private:
     }
 
     // === Short Poll (короткие запросы) ===
-    // Важно: этот режим опрашивает последнее сообщение у конкретного пользователя/peer.
+    // Важно: этот режим опрашивает последнее сообщение у конкретного peer.
     // Нужен соответствующий токен, у которого есть доступ к этому методу.
-    String shortPollUserId;
+    String shortPollPeerId;
     uint32_t shortPollIntervalMs = 2000;
     uint32_t shortPollTimeoutMs = 5000;
     unsigned long lastShortPollMs = 0;
@@ -489,14 +489,14 @@ private:
         }
         lastShortPollMs = now;
 
-        if (token.length() == 0 || shortPollUserId.length() == 0) {
+        if (token.length() == 0 || shortPollPeerId.length() == 0) {
             return false;
         }
 
         HTTPClient http;
         String url = "https://api.vk.com/method/messages.getHistory?";
         url += "access_token=" + token;
-        url += "&user_id=" + shortPollUserId;
+        url += "&peer_id=" + shortPollPeerId;
         url += "&count=1&v=5.199";
 
         http.begin(client, url);
@@ -512,6 +512,14 @@ private:
             if (error) {
                 Serial.print("[VK] JSON ошибка: ");
                 Serial.println(error.c_str());
+                return false;
+            }
+
+            if (doc["error"].is<JsonObject>()) {
+                Serial.print("[VK] Short Poll API ошибка: ");
+                Serial.print(doc["error"]["error_code"].as<int>());
+                Serial.print(" - ");
+                Serial.println(doc["error"]["error_msg"].as<String>());
                 return false;
             }
 
@@ -544,6 +552,13 @@ private:
             return true;
         }
 
+        Serial.print("[VK] Short Poll HTTP ошибка: ");
+        Serial.println(httpCode);
+        String errorBody = http.getString();
+        if (errorBody.length() > 0) {
+            Serial.print("[VK] Short Poll ответ: ");
+            Serial.println(errorBody);
+        }
         http.end();
         return true;
     }
@@ -576,8 +591,8 @@ public:
             return false;
         }
 
-        if (pollMode == PollMode::ShortPoll && shortPollUserId.length() == 0) {
-            Serial.println("[VK] Для Short Poll установите user_id через setModeShortPoll()");
+        if (pollMode == PollMode::ShortPoll && shortPollPeerId.length() == 0) {
+            Serial.println("[VK] Для Short Poll установите peer_id через setModeShortPoll()");
             return false;
         }
         
@@ -800,11 +815,11 @@ public:
         pollMode = PollMode::LongPoll;
     }
 
-    // Short Poll как в примере: опрашиваем последнее сообщение у user_id каждые intervalMs.
+    // Short Poll как в примере: опрашиваем последнее сообщение у peer_id каждые intervalMs.
     // Рекомендация: intervalMs >= 1000, чтобы не упираться в лимиты API.
-    void setModeShortPoll(String userId, uint32_t intervalMs = 2000, uint32_t timeoutMs = 5000) {
+    void setModeShortPoll(String peerId, uint32_t intervalMs = 2000, uint32_t timeoutMs = 5000) {
         pollMode = PollMode::ShortPoll;
-        shortPollUserId = userId;
+        shortPollPeerId = peerId;
         shortPollIntervalMs = intervalMs;
         shortPollTimeoutMs = timeoutMs;
         lastShortPollMs = 0;
