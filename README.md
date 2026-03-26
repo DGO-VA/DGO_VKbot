@@ -150,6 +150,31 @@ void onNewMessage(VkUpdate& update) {
 - `setLongPollTimeoutMs(uint32_t timeoutMs)` - таймаут (мс)
 - `setModeShortPoll(String userId, uint32_t intervalMs=2000, uint32_t timeoutMs=5000)` - режим Short Poll
 
+### Форматирование сообщений (format_data)
+
+Библиотека поддерживает отправку `format_data` в `messages.send`.
+
+- `sendMessage(String text, int peer_id, String format_data_json)` - отправка с разметкой
+- `fmtItalicAt(int offsetUtf16, int lengthUtf16)` - сделать фрагмент курсивом
+- `fmtUnderlineAt(int offsetUtf16, int lengthUtf16)` - сделать фрагмент подчеркнутым
+- `fmtUrlAt(int offsetUtf16, int lengthUtf16, const String& href)` - сделать фрагмент ссылкой
+- `fmtMerge(const String& a, const String& b)` - объединить несколько `format_data` JSON
+
+Важно: `offset` и `length` должны быть в **UTF-16 code units** (требование VK API).
+
+Пример:
+
+```cpp
+String text = "Привет! Открой vk.com";
+
+// "vk.com" начинается с позиции 15 и длиной 6 (в UTF-16 units для этой строки это совпадает)
+String italic = bot.fmtItalicAt(0, 7); // "Привет!"
+String link = bot.fmtUrlAt(15, 6, "https://vk.com");
+String fmt = bot.fmtMerge(italic, link);
+
+bot.sendMessage(text, peer_id, fmt);
+```
+
 ### Управление временем
 
 - `setTimezone(int hours)` - установить таймзону (например, 3 для UTC+3)
