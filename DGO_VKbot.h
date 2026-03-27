@@ -142,7 +142,7 @@ private:
 
     // Обработка ответа long poll (JSON), общий код для блокирующего и неблокирующего режимов
     bool handleLongPollJson(const String& responseBody) {
-        DynamicJsonDocument doc(4096);
+        JsonDocument doc;
         DeserializationError error = deserializeJson(doc, responseBody);
 
         if (error) {
@@ -375,10 +375,10 @@ private:
     }
 
     String buildFormatDataItem(const String& type, int offset, int length, const String& urlValue = "") {
-        DynamicJsonDocument doc(256);
+        JsonDocument doc;
         doc["version"] = 1;
-        JsonArray items = doc.createNestedArray("items");
-        JsonObject it = items.createNestedObject();
+        JsonArray items = doc["items"].to<JsonArray>();
+        JsonObject it = items.add<JsonObject>();
         it["type"] = type;
         it["offset"] = offset;
         it["length"] = length;
@@ -394,8 +394,8 @@ private:
     String mergeFormatData(const String& a, const String& b) {
         if (a.length() == 0) return b;
         if (b.length() == 0) return a;
-        DynamicJsonDocument da(512);
-        DynamicJsonDocument db(512);
+        JsonDocument da;
+        JsonDocument db;
         if (deserializeJson(da, a)) return a;
         if (deserializeJson(db, b)) return a;
         if (!da["items"].is<JsonArray>() || !db["items"].is<JsonArray>()) return a;
@@ -420,7 +420,7 @@ private:
         
         if (http.GET() == 200) {
             String response = http.getString();
-            DynamicJsonDocument doc(2048);
+            JsonDocument doc;
             DeserializationError error = deserializeJson(doc, response);
             
             if (!error && doc["response"].is<JsonObject>()) {
@@ -507,7 +507,7 @@ private:
             String responseBody = http.getString();
             http.end();
 
-            DynamicJsonDocument doc(4096);
+            JsonDocument doc;
             DeserializationError error = deserializeJson(doc, responseBody);
             if (error) {
                 Serial.print("[VK] JSON ошибка: ");
@@ -646,7 +646,7 @@ public:
         bool success = false;
         if (httpCode == 200) {
             String response = http.getString();
-            DynamicJsonDocument doc(512);
+            JsonDocument doc;
             DeserializationError error = deserializeJson(doc, response);
             
             if (!error) {
@@ -755,7 +755,7 @@ public:
         unsigned long serverTime = 0;
         if (httpCode == 200) {
             String response = http.getString();
-            DynamicJsonDocument doc(512);
+            JsonDocument doc;
             DeserializationError error = deserializeJson(doc, response);
             
             if (!error && doc["response"].is<unsigned long>()) {
